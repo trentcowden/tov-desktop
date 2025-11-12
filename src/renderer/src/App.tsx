@@ -95,6 +95,8 @@ function App(): React.JSX.Element {
   })
   const [verses, setVerses] = useState<{ verse: number; text: string }[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
+  const [direction, setDirection] = useState<'next' | 'previous' | null>(null)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   // Load saved chapter on mount
   useEffect(() => {
@@ -114,27 +116,38 @@ function App(): React.JSX.Element {
 
   // Set up navigation listener once on mount
   useEffect(() => {
-    window.bibleApi.onNavigateChapter((direction) => {
-      if (direction === 'next') {
-        // Use setActiveChapter with callback to get current state
-        setActiveChapter((current) => {
-          window.bibleApi.getNextChapter(current.book, current.chapter).then((next) => {
-            if (next) {
-              setActiveChapter(next)
-            }
+    window.bibleApi.onNavigateChapter((navDirection) => {
+      setIsTransitioning(true)
+      setDirection(navDirection)
+
+      // Wait for fade out animation
+      setTimeout(() => {
+        if (navDirection === 'next') {
+          setActiveChapter((current) => {
+            window.bibleApi.getNextChapter(current.book, current.chapter).then((next) => {
+              if (next) {
+                setActiveChapter(next)
+                setTimeout(() => setIsTransitioning(false), 50)
+              } else {
+                setIsTransitioning(false)
+              }
+            })
+            return current
           })
-          return current
-        })
-      } else if (direction === 'previous') {
-        setActiveChapter((current) => {
-          window.bibleApi.getPreviousChapter(current.book, current.chapter).then((prev) => {
-            if (prev) {
-              setActiveChapter(prev)
-            }
+        } else if (navDirection === 'previous') {
+          setActiveChapter((current) => {
+            window.bibleApi.getPreviousChapter(current.book, current.chapter).then((prev) => {
+              if (prev) {
+                setActiveChapter(prev)
+                setTimeout(() => setIsTransitioning(false), 50)
+              } else {
+                setIsTransitioning(false)
+              }
+            })
+            return current
           })
-          return current
-        })
-      }
+        }
+      }, 125)
     })
   }, [])
 
@@ -150,7 +163,15 @@ function App(): React.JSX.Element {
   return (
     <div className="w-full h-screen flex items-center justify-center bg-b1 overflow-hidden">
       <div className="w-full h-full overflow-y-auto items-center justify-center">
-        <div className="max-w-2xl flex-col w-full h-full px-8 overflow-visible">
+        <div
+          className={`max-w-2xl flex-col w-full h-full px-8 overflow-visible ${
+            isTransitioning
+              ? direction === 'next'
+                ? `opacity-0 -translate-x-12 scale-x-95 transition-all duration-125 ease-out`
+                : `opacity-0 translate-x-12 scale-x-95 transition-all duration-125 ease-out`
+              : `opacity-100 translate-x-0 transition-opacity duration-75 ease-in`
+          }`}
+        >
           <h1 className="mt-12 mb-4 text-f1 text-2xl font-bold">
             {bookNames[activeChapter.book]} {activeChapter.chapter}
           </h1>
