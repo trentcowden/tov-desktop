@@ -167,8 +167,8 @@ function App(): React.JSX.Element {
           className={`max-w-2xl flex-col w-full h-full px-8 overflow-visible ${
             isTransitioning
               ? direction === 'next'
-                ? `opacity-0 -translate-x-12 scale-x-95 transition-all duration-125 ease-out`
-                : `opacity-0 translate-x-12 scale-x-95 transition-all duration-125 ease-out`
+                ? `opacity-0 -translate-x-24 scale-x-95 transition-all duration-125`
+                : `opacity-0 translate-x-24 scale-x-95 transition-all duration-125`
               : `opacity-100 translate-x-0 transition-opacity duration-75 ease-in`
           }`}
         >
