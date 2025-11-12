@@ -26,8 +26,23 @@ async function getStore(): Promise<ElectronStore> {
   return store
 }
 
+// Define types for database queries
+interface VerseRow {
+  verse: number
+  text: string
+}
+
+interface ChapterInfo {
+  book: string
+  chapter: number
+}
+
+interface BookOrderRow {
+  book_order: number
+}
+
 ipcMain.handle('get-chapter', (_event, book: string, chapter: number) => {
-  const stmt = db.prepare(`
+  const stmt = db.prepare<[string, number], VerseRow>(`
     SELECT verse, text
     FROM verses
     WHERE book=? AND chapter=?
@@ -39,7 +54,7 @@ ipcMain.handle('get-chapter', (_event, book: string, chapter: number) => {
 ipcMain.handle('get-next-chapter', (_event, book: string, chapter: number) => {
   // Try next chapter in same book
   const nextChapter = db
-    .prepare(
+    .prepare<[string, number], ChapterInfo>(
       `
     SELECT DISTINCT book, chapter
     FROM verses
@@ -47,7 +62,7 @@ ipcMain.handle('get-next-chapter', (_event, book: string, chapter: number) => {
     LIMIT 1
   `
     )
-    .get(book, chapter + 1) as { book: string; chapter: number } | undefined
+    .get(book, chapter + 1)
 
   if (nextChapter) {
     return { book: nextChapter.book, chapter: nextChapter.chapter }
@@ -55,13 +70,13 @@ ipcMain.handle('get-next-chapter', (_event, book: string, chapter: number) => {
 
   // Try first chapter of next book
   const currentBookOrder = db
-    .prepare('SELECT book_order FROM verses WHERE book=? LIMIT 1')
-    .get(book) as { book_order: number } | undefined
+    .prepare<[string], BookOrderRow>('SELECT book_order FROM verses WHERE book=? LIMIT 1')
+    .get(book)
 
   if (!currentBookOrder) return null
 
   const nextBook = db
-    .prepare(
+    .prepare<[number], ChapterInfo>(
       `
     SELECT DISTINCT book, MIN(chapter) as chapter
     FROM verses
@@ -71,7 +86,7 @@ ipcMain.handle('get-next-chapter', (_event, book: string, chapter: number) => {
     LIMIT 1
   `
     )
-    .get(currentBookOrder.book_order) as { book: string; chapter: number } | undefined
+    .get(currentBookOrder.book_order)
 
   return nextBook || null
 })
@@ -79,7 +94,7 @@ ipcMain.handle('get-next-chapter', (_event, book: string, chapter: number) => {
 ipcMain.handle('get-previous-chapter', (_event, book: string, chapter: number) => {
   // Try previous chapter in same book
   const prevChapter = db
-    .prepare(
+    .prepare<[string, number], ChapterInfo>(
       `
     SELECT DISTINCT book, chapter
     FROM verses
@@ -87,7 +102,7 @@ ipcMain.handle('get-previous-chapter', (_event, book: string, chapter: number) =
     LIMIT 1
   `
     )
-    .get(book, chapter - 1) as { book: string; chapter: number } | undefined
+    .get(book, chapter - 1)
 
   if (prevChapter) {
     return { book: prevChapter.book, chapter: prevChapter.chapter }
@@ -95,13 +110,13 @@ ipcMain.handle('get-previous-chapter', (_event, book: string, chapter: number) =
 
   // Try last chapter of previous book
   const currentBookOrder = db
-    .prepare('SELECT book_order FROM verses WHERE book=? LIMIT 1')
-    .get(book) as { book_order: number } | undefined
+    .prepare<[string], BookOrderRow>('SELECT book_order FROM verses WHERE book=? LIMIT 1')
+    .get(book)
 
   if (!currentBookOrder) return null
 
   const prevBook = db
-    .prepare(
+    .prepare<[number], ChapterInfo>(
       `
     SELECT DISTINCT book, MAX(chapter) as chapter
     FROM verses
@@ -111,7 +126,7 @@ ipcMain.handle('get-previous-chapter', (_event, book: string, chapter: number) =
     LIMIT 1
   `
     )
-    .get(currentBookOrder.book_order) as { book: string; chapter: number } | undefined
+    .get(currentBookOrder.book_order)
 
   return prevBook || null
 })
