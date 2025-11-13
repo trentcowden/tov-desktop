@@ -1,4 +1,6 @@
+import { ArrowLeft, ArrowRight } from '@untitledui/icons'
 import { useEffect, useState } from 'react'
+import CustomScrollbar from './components/Scrollbar'
 
 const bookNames = {
   '1CH': '1 Chronicles',
@@ -114,6 +116,34 @@ function App(): React.JSX.Element {
     window.bibleApi.saveCurrentChapter(activeChapter.book, activeChapter.chapter)
   }, [activeChapter, isLoaded])
 
+  function navigatePrevious(): void {
+    setActiveChapter((current) => {
+      window.bibleApi.getPreviousChapter(current.book, current.chapter).then((prev) => {
+        if (prev) {
+          setActiveChapter(prev)
+          setTimeout(() => setIsTransitioning(false), 50)
+        } else {
+          setIsTransitioning(false)
+        }
+      })
+      return current
+    })
+  }
+
+  function navigateNext(): void {
+    setActiveChapter((current) => {
+      window.bibleApi.getNextChapter(current.book, current.chapter).then((next) => {
+        if (next) {
+          setActiveChapter(next)
+          setTimeout(() => setIsTransitioning(false), 50)
+        } else {
+          setIsTransitioning(false)
+        }
+      })
+      return current
+    })
+  }
+
   // Set up navigation listener once on mount
   useEffect(() => {
     window.bibleApi.onNavigateChapter((navDirection) => {
@@ -123,29 +153,9 @@ function App(): React.JSX.Element {
       // Wait for fade out animation
       setTimeout(() => {
         if (navDirection === 'next') {
-          setActiveChapter((current) => {
-            window.bibleApi.getNextChapter(current.book, current.chapter).then((next) => {
-              if (next) {
-                setActiveChapter(next)
-                setTimeout(() => setIsTransitioning(false), 50)
-              } else {
-                setIsTransitioning(false)
-              }
-            })
-            return current
-          })
+          navigateNext()
         } else if (navDirection === 'previous') {
-          setActiveChapter((current) => {
-            window.bibleApi.getPreviousChapter(current.book, current.chapter).then((prev) => {
-              if (prev) {
-                setActiveChapter(prev)
-                setTimeout(() => setIsTransitioning(false), 50)
-              } else {
-                setIsTransitioning(false)
-              }
-            })
-            return current
-          })
+          navigatePrevious()
         }
       }, 125)
     })
@@ -161,15 +171,26 @@ function App(): React.JSX.Element {
   }
 
   return (
-    <div className="w-full h-screen flex items-center justify-center bg-b1 overflow-hidden">
-      <div className="w-full h-full overflow-y-auto items-center justify-center">
+    <div className="w-full h-screen flex items-center justify-center bg-b1">
+      <div className="chapter-iterate-outer left-4">
+        <div onClick={navigatePrevious} className="chapter-iterate-inner">
+          <ArrowLeft className="size-4" />
+        </div>
+      </div>
+      <div className="chapter-iterate-outer right-4">
+        <div onClick={navigateNext} className="chapter-iterate-inner">
+          <ArrowRight className="size-4" />
+        </div>
+      </div>
+      {/* <div className="w-full h-full overflow-y-auto items-center justify-center"> */}
+      <CustomScrollbar>
         <div
-          className={`max-w-2xl flex-col w-full h-full px-8 overflow-visible ${
+          className={`overflow-visible w-full flex-col h-full  ${
             isTransitioning
               ? direction === 'next'
-                ? `opacity-0 -translate-x-24 scale-x-95 transition-all duration-125`
-                : `opacity-0 translate-x-24 scale-x-95 transition-all duration-125`
-              : `opacity-100 translate-x-0 transition-opacity duration-75 ease-in`
+                ? `opacity-0 -translate-x-24 scale-x-95 -rotate-3 transition-all duration-125`
+                : `opacity-0 translate-x-24 scale-x-95 rotate-3 transition-all duration-125`
+              : `opacity-100 translate-x-0 rotate-0 transition-opacity duration-75 ease-in`
           }`}
         >
           <h1 className="mt-12 mb-4 text-f1 text-2xl font-bold">
@@ -185,7 +206,8 @@ function App(): React.JSX.Element {
             <div className="h-8" />
           </p>
         </div>
-      </div>
+      </CustomScrollbar>
+      {/* </div> */}
     </div>
   )
 }

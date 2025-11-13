@@ -37,6 +37,27 @@
   --color-p2: hsl(75, 32%, 37%);
   --color-bo: hsla(75, 32%, 43%, 0.4);
   --color-bd: hsla(0, 0%, 0%, 0.2);
+
+  --animate-smooth-bounce: smooth-bounce 1.5s ease-in-out infinite;
+  @keyframes smooth-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+  --animate-smooth-pulse: smooth-pulse 1s ease-in-out infinite;
+  @keyframes smooth-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(0.99);
+    }
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -57,4 +78,23 @@
 
 div {
   @apply flex;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* WebKit browsers */
+::-webkit-scrollbar {
+  display: none;
+}
+
+@layer components {
+  .chapter-iterate-inner {
+    @apply w-full active:scale-99 active:bg-p2 flex-1 hover:animate-smooth-bounce transition-all hover:bg-p1 cursor-pointer rounded-xl border-p1/10 border-2 justify-center items-center text-p1/40 hover:text-b1;
+  }
+  .chapter-iterate-outer {
+    @apply h-screen py-4 absolute w-12 flex-col z-10;
+  }
 }
