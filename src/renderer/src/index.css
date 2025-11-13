@@ -60,22 +60,6 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  @theme {
-    /* Fall Theme (Dark - Default) */
-    --color-b1: hsl(27, 20%, 8%);
-    --color-b2: hsl(27, 23%, 10%);
-    --color-b3: hsl(27, 26%, 12%);
-    --color-o2: hsl(27, 26%, 12%);
-    --color-f1: hsl(27, 10%, 90%);
-    --color-f2: hsl(27, 10%, 70%);
-    --color-p1: hsl(11, 31%, 61%);
-    --color-p2: hsl(11, 23%, 51%);
-    --color-bo: hsla(11, 31%, 61%, 0.4);
-    --color-bd: hsla(0, 0%, 0%, 0.2);
-  }
-}
-
 div {
   @apply flex;
 }
@@ -92,9 +76,9 @@ div {
 
 @layer components {
   .chapter-iterate-inner {
-    @apply w-full active:scale-99 active:bg-p2 flex-1 hover:animate-smooth-bounce transition-all hover:bg-p1 cursor-pointer rounded-xl border-p1/10 border-2 justify-center items-center text-p1/40 hover:text-b1;
+    @apply w-full active:scale-99 active:bg-p2 flex-1 hover:animate-smooth-bounce transition-all hover:bg-p1 cursor-pointer rounded-xl border-p1/30 border justify-center items-center text-p1/40 hover:text-b1;
   }
   .chapter-iterate-outer {
-    @apply h-screen py-4 absolute w-12 flex-col z-10;
+    @apply h-screen py-4 absolute w-12 flex-col z-10 max-lg:hidden!;
   }
 }
